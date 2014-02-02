@@ -29,6 +29,16 @@ class Tetris(object):
                 self.grid[y].append((y, x, '-', False))
          
 
+    def reset_game(self):
+        self.make_grid()
+        self.reset_offsets()
+        self.set_tetromino_queue()
+        self.orientation = 0
+        self.points = 0
+        self.game_over = False
+        self.current_tetromino = None
+        self.current_swap = 'e'
+        
     def reset_offsets(self):
         self.x_offset = self.width/2 - 2
         self.y_offset = 0
