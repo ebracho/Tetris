@@ -14,12 +14,13 @@ screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption('Tetris')
 screen.fill((0,125,125))
 
+intro_font = pygame.font.SysFont("monospace", 20)
+message = "Intro Screen: press any key to continue"
+intro_label = intro_font.render(message, 1, (255,255,255))
+
 pause_screen = pygame.Surface((WIDTH,HEIGHT))
 pause_screen.fill((0,0,0))
 pause_screen.set_alpha(200)
-
-pause_font = pygame.font.SysFont("monospace",48)
-pause_label = pause_font.render("Pause", 1, (255,255,255))
 
 # Audio Setup
 pygame.mixer.init()
@@ -33,7 +34,7 @@ clear_4_sound = pygame.mixer.Sound('sounds/clear_4.wav')
 clear_sounds = { 1 : clear_1_sound, 2 : clear_2_sound, 
                  3 : clear_3_sound, 4 : clear_4_sound }
 
-def intro_loop(screen, game):
+def intro_loop(screen,game):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
@@ -41,9 +42,6 @@ def intro_loop(screen, game):
             
 
         screen.fill((0,125,125))
-        intro_font = pygame.font.SysFont("monospace", 20)
-        message = "Intro Screen: press any key to continue"
-        intro_label = intro_font.render(message, 1, (255,255,255))
         screen.blit(intro_label, (6,100))
         pygame.display.flip()
     
@@ -53,10 +51,17 @@ def update_score(screen, game):
     screen.fill((0,125,125)) # Erase old score
     screen.blit(score_label, (95, 620))
     
-def pause_game(screen):
+def pause_loop(screen,message, reset = False):
     pygame.mixer.music.set_volume(.3)
+
     screen.blit(pause_screen, (0,0))
-    screen.blit(pause_label, (180,200))
+
+    if len(message) > 10: font_size = 700/len(message)
+    else: font_size = 48
+    message_font = pygame.font.SysFont("monospace", font_size)
+    message_label = message_font.render(message, 1, (255,255,255))
+    x_offset = WIDTH/2 - message_label.get_width()/2
+    screen.blit(message_label, (x_offset,200))
     pygame.display.flip()
 
     # Enter infinite loop until ESC is pressed
@@ -69,6 +74,7 @@ def pause_game(screen):
                     k_escape_pressed = True
         if k_escape_pressed: break
 
+    if reset == True: game.reset_game()
     screen.fill((0,125,125))
     pygame.mixer.music.set_volume(1)
 
@@ -115,7 +121,7 @@ def game_loop(screen,game):
 
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: sys.exit()#end_game(screen,game)
+            if event.type == pygame.QUIT: sys.exit()
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT: k_left_pressed = True
@@ -124,7 +130,7 @@ def game_loop(screen,game):
                 if event.key == pygame.K_UP: k_up_pressed = True
                 if event.key == pygame.K_SPACE: k_space_pressed = True
                 if event.key == pygame.K_LSHIFT: k_lshift_pressed = True
-                if event.key == pygame.K_ESCAPE: k_escape_pressed = pause_game(screen)
+                if event.key == pygame.K_ESCAPE: pause_loop(screen,"pause")
                
 
             elif event.type == pygame.KEYUP:
@@ -139,7 +145,7 @@ def game_loop(screen,game):
         render_game(screen,game)
 
         # Game processing
-        if game.game_over == True: intro_loop(screen,game)
+        if game.game_over == True: pause_loop(screen,"Game Over: Press ESC to try again", True)
         rows_cleared = game.clear_full_rows(0)
         if rows_cleared: clear_sounds[rows_cleared].play()
 
