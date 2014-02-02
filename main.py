@@ -33,6 +33,20 @@ clear_4_sound = pygame.mixer.Sound('sounds/clear_4.wav')
 clear_sounds = { 1 : clear_1_sound, 2 : clear_2_sound, 
                  3 : clear_3_sound, 4 : clear_4_sound }
 
+def intro_loop(screen, game):
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+            elif event.type == pygame.KEYDOWN: game_loop(screen,game)
+            
+
+        screen.fill((0,125,125))
+        intro_font = pygame.font.SysFont("monospace", 20)
+        message = "Intro Screen: press any key to continue"
+        intro_label = intro_font.render(message, 1, (255,255,255))
+        screen.blit(intro_label, (6,100))
+        pygame.display.flip()
+    
 def update_score(screen, game):
     score_font = pygame.font.SysFont("monospace",48)
     score_label = score_font.render("Score: %d" % game.points, 1, (255,255,255))
@@ -58,7 +72,7 @@ def pause_game(screen):
     screen.fill((0,125,125))
     pygame.mixer.music.set_volume(1)
 
-def render_game(game,screen):
+def render_game(screen,game):
     # Score 
     update_score(screen, game)
 
@@ -86,7 +100,8 @@ def render_game(game,screen):
     
     pygame.display.flip()
 
-def main_loop(game,screen):
+def game_loop(screen,game):
+    game.reset_game()
     swap_count = 0
     tick = 0
 
@@ -100,7 +115,7 @@ def main_loop(game,screen):
 
     while True:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT: sys.exit()#end_game(game,screen)
+            if event.type == pygame.QUIT: sys.exit()#end_game(screen,game)
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT: k_left_pressed = True
@@ -121,10 +136,10 @@ def main_loop(game,screen):
                 if event.key == pygame.K_LSHIFT: k_lshift_pressed = False
 
         # Rendering
-        render_game(game,screen)
+        render_game(screen,game)
 
         # Game processing
-        if game.game_over == True: sys.exit() #end_game()
+        if game.game_over == True: intro_loop(screen,game)
         rows_cleared = game.clear_full_rows(0)
         if rows_cleared: clear_sounds[rows_cleared].play()
 
@@ -156,5 +171,4 @@ def main_loop(game,screen):
 
 game = Tetris(10,22)
 
-
-main_loop(game,screen)
+intro_loop(screen,game)
