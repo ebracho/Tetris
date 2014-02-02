@@ -13,7 +13,7 @@ class Tetris(object):
         self.set_shapes()
         self.set_tetromino_queue()
         self.orientation = 0
-        self.points = 0
+        self.points = 0 
         self.game_over = False
         self.current_tetromino = None
         self.current_swap = 'e'
@@ -167,7 +167,7 @@ class Tetris(object):
         self.insert_tetromino(False)
         
 
-    def shift_moving_blocks(self, direction):
+    def shift_moving_blocks(self, direction, check_for_collision = True):
         moving_blocks = self.get_moving_blocks()
         if not moving_blocks: return False
         if direction == 'down':
@@ -176,8 +176,9 @@ class Tetris(object):
                 y = blocks[0]
                 x = blocks[1]
                 if y == self.height-1 or self.space_occupied(y+1,x): 
-                    self.freeze_moving_blocks() 
-                    return False
+                   if check_for_collision:
+                       self.freeze_moving_blocks() 
+                       return False
             # Replace old tetromino with new shifted one
             self.clear_moving_blocks()
             for blocks in moving_blocks:
@@ -254,9 +255,19 @@ class Tetris(object):
             self.current_swap = tmp
             self.insert_tetromino(False)
 
+    def insert_block(self, x, y, color, moving_flag):
+        if not self.in_bounds(y,x) or self.space_occupied(y,x): return False
+        self.grid[y][x] = (y, x, color, moving_flag)
+
     def get_blocks(self):
         blocks = []
         for y in range(self.height):
             for x in range(self.width):
                 blocks.append(self.grid[y][x])
         return blocks
+
+    # Special function for intro loop
+    def freeze_bottom_row(self):
+        for block in self.grid[self.height-1]:
+            if block[3] == True:
+                self.grid[self.height-1][block[1]] = (block[0],block[1],block[2],False)

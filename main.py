@@ -15,7 +15,7 @@ pygame.display.set_caption('Tetris')
 screen.fill((0,125,125))
 
 intro_font = pygame.font.SysFont("monospace", 20)
-message = "Intro Screen: press any key to continue"
+message = "Press any key to start"
 intro_label = intro_font.render(message, 1, (255,255,255))
 
 pause_screen = pygame.Surface((WIDTH,HEIGHT))
@@ -35,16 +35,30 @@ clear_sounds = { 1 : clear_1_sound, 2 : clear_2_sound,
                  3 : clear_3_sound, 4 : clear_4_sound }
 
 def intro_loop(screen,game):
+    screen.fill((0,125,125))
+    screen.blit(intro_label, (105,630))
+    tick = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT: sys.exit()
             elif event.type == pygame.KEYDOWN: game_loop(screen,game)
-            
 
-        screen.fill((0,125,125))
-        screen.blit(intro_label, (6,100))
-        pygame.display.flip()
-    
+        # Render blocks onto screen
+        render_game(screen,game,True)
+
+        # Block Animations
+        colors = ['c','y','v','g','r','b','o']
+        if tick <= 70:
+            game.insert_block(tick%10,0,colors[(tick/10)%7],True)
+            game.insert_block(9-(tick%10),0,colors[((tick/10)+3)%7],True)
+
+        game.freeze_bottom_row()
+        game.clear_full_rows(0)
+        game.shift_moving_blocks('down', False)
+        if tick == 70: tick = 0
+        tick+=1
+        time.sleep(.07)
+
 def update_score(screen, game):
     score_font = pygame.font.SysFont("monospace",48)
     score_label = score_font.render("Score: %d" % game.points, 1, (255,255,255))
@@ -78,12 +92,12 @@ def pause_loop(screen,message, reset = False):
     screen.fill((0,125,125))
     pygame.mixer.music.set_volume(1)
 
-def render_game(screen,game):
-    # Score 
-    update_score(screen, game)
+def render_game(screen,game,grid_only = False):
 
     # Blocks
     block_list = game.get_blocks()
+    # Score 
+    if not grid_only: update_score(screen, game)
     
     for blocks in block_list[20:]:
         y_offput = 30 * blocks[0] - 60
@@ -92,21 +106,24 @@ def render_game(screen,game):
         block_image = BLOCK_KEYS[blocks[2]]
         screen.blit(block_image, (x_offput,y_offput), block_rect)
 
-    # Swap Image
-    swap_image = SWAP_KEYS[game.current_swap]
-    swap_rect = SWAP_RECT_KEYS[game.current_swap]
-    screen.blit(swap_image, (0,0), swap_rect)
 
-    # Tetromino Queue
-    for i in range(4):
-        tetromino = game.tetromino_queue[i]
-        queue_image = QUEUE_KEYS[tetromino]
-        queue_rect = QUEUE_RECT_KEYS[tetromino]
-        screen.blit(queue_image, (390, 87*i), queue_rect)
-    
+    # Swap Image
+    if not grid_only:
+        swap_image = SWAP_KEYS[game.current_swap]
+        swap_rect = SWAP_RECT_KEYS[game.current_swap]
+        screen.blit(swap_image, (0,0), swap_rect)
+
+        # Tetromino Queue
+        for i in range(4):
+            tetromino = game.tetromino_queue[i]
+            queue_image = QUEUE_KEYS[tetromino]
+            queue_rect = QUEUE_RECT_KEYS[tetromino]
+            screen.blit(queue_image, (390, 87*i), queue_rect)
+            
     pygame.display.flip()
 
 def game_loop(screen,game):
+    quick_pause = False
     game.reset_game()
     swap_count = 0
     tick = 0
@@ -141,6 +158,11 @@ def game_loop(screen,game):
                 if event.key == pygame.K_SPACE: k_space_pressed = False
                 if event.key == pygame.K_LSHIFT: k_lshift_pressed = False
 
+        if quick_pause == 2: 
+            time.sleep(.16)
+            quick_pause = 0
+        if quick_pause == 1: quick_pause += 1
+
         # Rendering
         render_game(screen,game)
 
@@ -159,6 +181,7 @@ def game_loop(screen,game):
 
         elif k_space_pressed == True: 
             while game.shift_moving_blocks('down'): pass
+            quick_pause = True # Helps avoid accidently flooring next tetromino
 
         elif k_lshift_pressed == True: 
             if swap_count == 0: # 1 swap per insert
