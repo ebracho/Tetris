@@ -40,7 +40,7 @@ class Tetris(object):
         self.current_swap = 'e'
         
     def reset_offsets(self):
-        self.x_offset = self.width/2 - 2
+        self.x_offset = self.width//2 - 2
         self.y_offset = 0
 
     def set_colors(self):

@@ -49,8 +49,8 @@ def intro_loop(screen,game):
         # Block Animations
         colors = ['c','y','v','g','r','b','o']
         if tick <= 70:
-            game.insert_block(tick%10,0,colors[(tick/10)%7],True)
-            game.insert_block(9-(tick%10),0,colors[((tick/10)+3)%7],True)
+            game.insert_block(tick%10,0,colors[(tick//10)%7],True)
+            game.insert_block(9-(tick%10),0,colors[((tick//10)+3)%7],True)
 
         game.freeze_bottom_row()
         game.clear_full_rows(0)
@@ -70,11 +70,11 @@ def pause_loop(screen,message, reset = False):
 
     screen.blit(pause_screen, (0,0))
 
-    if len(message) > 10: font_size = 700/len(message)
+    if len(message) > 10: font_size = 700//len(message)
     else: font_size = 48
     message_font = pygame.font.SysFont("monospace", font_size)
     message_label = message_font.render(message, 1, (255,255,255))
-    x_offset = WIDTH/2 - message_label.get_width()/2
+    x_offset = WIDTH//2 - message_label.get_width()/2
     screen.blit(message_label, (x_offset,200))
     pygame.display.flip()
 
